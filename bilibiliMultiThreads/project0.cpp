@@ -61,7 +61,7 @@ void myprint ()
 	std::cout << "sub thread end here" << std::endl;
 }
 
-int main () 
+int main0 () 
 {
 	std::cout << "Main thread begin here" << std::endl;
 
