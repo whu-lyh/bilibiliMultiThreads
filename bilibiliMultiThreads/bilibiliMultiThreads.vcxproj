@@ -117,6 +117,7 @@
   <ItemGroup>
     <ClCompile Include="project0.cpp" />
     <ClCompile Include="project1.cpp" />
+    <ClCompile Include="project2.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="projectInfo.h" />
