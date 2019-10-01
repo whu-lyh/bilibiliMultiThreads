@@ -24,7 +24,7 @@
 
 //#define lessen4
 //#define lessen5
-#define lessen6
+//#define lessen6
 
 #ifdef lessen6
 class A
@@ -130,7 +130,7 @@ int main1 ()
 
 	A myAobj(100);
 	//std::thread mythreadobj2 (&A::thread_work, myAobj, 200);
-	std::thread mythreadobj2 (&A::thread_work, std::ref(myAobj), 200);
+	std::thread mythreadobj2 (&A::thread_work, std::ref(myAobj), 200); //这里竟然出现一个invoke的错误，在vs2015上面，再测试一下vs2017是不是同样会出现该错误。
 	mythreadobj2.join ();
 	//mythreadobj2.detach ();//ref下不可以使用
 
