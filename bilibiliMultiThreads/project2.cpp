@@ -369,7 +369,7 @@ private:
 
 #endif
 
-int main ()
+int main2 ()
 {
 	std::vector<std::thread> mythreads;
 	for (int i = 0; i < 10; i++)
