@@ -97,7 +97,7 @@ void myThreadFunc()
 	return;
 }
 
-int main()
+int main3()
 {
 	singleInstanceclass *p_singleclassA = singleInstanceclass::getInstance(); //创建一个对象，并返回该类（singleInstanceclass）对象的指针
 	singleInstanceclass *p_singleclassB = singleInstanceclass::getInstance(); //返回的对象指针是相同的。
