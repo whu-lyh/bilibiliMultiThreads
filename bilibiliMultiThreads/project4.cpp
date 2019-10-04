@@ -23,32 +23,32 @@ notify_all
 /*
 	后台创建后台任务并返回值，async是函数模板，是用来启动异步任务，返回std::future类模板对象，
 	future对象含有成员函数get()
-	1. std::asysnc、std::future<T>：希望线程返回一个结果
-		std::asysnc：函数模板，启动一个异步任务，它返回一个std::future类模板对象。
+	1. std::async、std::future<T>：希望线程返回一个结果
+		std::async：函数模板，启动一个异步任务，它返回一个std::future类模板对象。
 		std::future<T>:类模板，常用函数,T是返回结果的类型
 			get()       //等待，直到获取子线程返回值，解除堵塞。///注意只能调用一次///,   因为get()是用移动语义实现的,使用future.get()后，再次使用future.get()将变成nullptr。
 			wait()；    //等待，直到子线程结束，不需要返回值，解除堵塞
 	启动一个异步任务，就是自动创建一个线程并且开始执行对应的线程入口函数，它返回一个std::future类模板对象。在这个对象里，含有线程入口函数的返回结果，即线程返回的结果，我们可以通过std::future对象的成员函数get()获取结果。
 	future, 提供了一种访问异步操作结果的机制。
-	2. std::asysnc，第一个参数:std::launch类型，是一个枚举类型，来实现特殊的目的：
+	2. std::async，第一个参数:std::launch类型，是一个枚举类型，来实现特殊的目的：
 	/// Launch code for futures
-	    enum class launch
-		    {
-			        async = 1,
-					deferred = 2
-			};
+	 enum class launch
+	{
+		async = 1,
+		deferred = 2
+	};
 		std::future<int> retVal = std::async(std::launch::deferred,&Async::myThread, &ayc, val);
-		1）std::launch::deferred：//延迟调用
-	the task is executed on the calling thread the first time its result is requested (lazy evaluation)。
-	即，这个标志位下，子线程根本不会被创建，直到get()/wait()相应的入口函数才会被执行；没有get()/wait()入口函数就不会被执行。子线程也不会被创建
-	而且，在有get()/wait()时，线程的入口函数是在调用get()/wait()所在线程执行的。==>延迟调用是不会创建子线程的，还是会再本线程（主线程）中调用mythread函数入口。
-		2）std::launch::asysnc（默认使用的就是它）
-	a new thread is launched to execute the task asynchronously。
-	即，显式的创建一个新的线程执行线程入口函数。并且不需要get也会开始创建子线程执行子线程函数，
-		3）std::launch::deferred | std::launch::asysnc
-	if both the std::launch::async and std::launch::deferred flags are set in policy, it is up to the implementation whether to perform asynchronous execution or lazy evaluation.
-	系统的默认的标志位，即当第一个参数不传入的时候，和显示的设置std::launch::deferred | std::launch::async效果一样,即取决于自己的实现，执行哪个。
-	此时可能创建新的线程执行异步任务（std::launch::async），也有可能在调用异步任务返回值的线程里直接调用这个异步任务函数而不创建新的线程(std::launch::deferred)。因此可以配合future_status一起使用，来确定这个异步任务执行情况。
+		1）std::launch::deferred：//延迟调用,不到get不会执行，而且只在主线程开始执行的
+			the task is executed on the calling thread the first time its result is requested (lazy evaluation)。
+			即，这个标志位下，子线程根本不会被创建，直到get()/wait()相应的入口函数才会被执行；没有get()/wait()入口函数就不会被执行。子线程也不会被创建
+			而且，在有get()/wait()时，线程的入口函数是在调用get()/wait()所在线程执行的。==>延迟调用是不会创建子线程的，还是会再本线程（主线程）中调用mythread函数入口。
+		2）std::launch::async（默认使用的是std::launch::deferred | std::launch::async）
+			a new thread is launched to execute the task asynchronously。
+			即，显式的创建一个新的线程执行线程入口函数。并且不需要get也会开始创建子线程执行子线程函数，
+		3）std::launch::deferred | std::launch::async
+			if both the std::launch::async and std::launch::deferred flags are set in policy, it is up to the implementation whether to perform asynchronous execution or lazy evaluation.
+			系统的默认的标志位，即当第一个参数不传入的时候，和显示的设置std::launch::deferred | std::launch::async效果一样,即取决于自己的实现，执行哪个。
+			此时可能创建新的线程执行异步任务（std::launch::async），也有可能在调用异步任务返回值的线程里直接调用这个异步任务函数而不创建新的线程(std::launch::deferred)。因此可以配合future_status一起使用，来确定这个异步任务执行情况。
 	3. 	std::packaged_task
 		std::packaged_task是个类模板，模板参数是各种可调用对象，通过std::packaged_task把各种可调用对象包装起来，以作为线程入口函数。
 		可调用对象指的是？函数？成员函数？
@@ -60,7 +60,7 @@ notify_all
 		保存在std::promise<T>对象之中，在另一个线程中，再将这个值取出来。当然，得确保这个std::promise<T>对象是同一个对象，因此需要使用引用传递参数。
 		与取值有关的函数是std::future<T>obj,通过prom.get_futrue();就可以取出furture对象，然后future.get()取出这个值。
 	5. 小结
-		std::asysnc
+		std::async
 		std::packaged_task,
 		std::promise：更像是一个传递数据的变量，通过它在线程之间传递数据。
 			他们都可以和std::future<T>配合使用，通过std::future<T>来取出线程中自己需要的值，方式有所不同。
@@ -68,15 +68,19 @@ notify_all
 				std::packaged_task和std::promise
 					他们的对象有get_future方法，可以得到std::future<T>对象，再获取相应的值。其中T是获取的值类型。
 					他们都需要结合std::thread 进行使用，然后别忘记 join()。
-		std::asysnc
+		std::async
 			async如果创建子线程，如果子线程还没结束，主线程任务已经执行结束，那么主线程会在结束前将子线程任务执行结束再返回。
-			sync更加准确的叫法是，创建一个异步任务，但并不一定创建一个子线程，
-				std::launch:deferred传入时，谁调用get就当前线程里创建异步任务，并没有创建新的子线程。
-				std::launch::async传入时，强制创建子线程执行异步任务。
-			std::asysnc与std::thread区别
-				thread在系统资源紧张时，可能会创建线程失败，而async会强制创建一个新的线程
-				thread如果想获取线程的返回值，或者一些自己需要的中间值，不容易实现。但是async返回的时std::future<T>对象，或者std::share_futute<T>对象，可以方便的获取返回值。
+			async更加准确的叫法是，****创建一个异步任务****，但并不一定创建一个子线程，
+				std::launch:deferred传入时，谁调用get()或者wait()就当前线程里创建异步任务，并没有创建新的子线程。
+				std::launch::async传入时，****强制创建子线程，并在子线程中执行异步任务****。
+			std::async与std::thread区别
+				thread在系统资源紧张时，可能会创建线程失败，程序就会崩溃，
+				****async会强制创建一个新的线程****但是如果资源确实紧张，async（采用默认参数std::launch::deferred | std::launch::async）时就不会创建新线程，而是谁调用了result.get(wait())就在谁的线程上开始任务。
+				如果确实要创建新线程，就采用参数std::launch::async，但是系统不一定可以创建新线程，导致和thread一样的错误。
+				thread如果想获取线程的返回值，或者一些自己需要的中间值，不容易实现。但是async返回的时后返回std::future<T>对象，或者std::share_futute<T>对象，可以方便的获取返回值future.get()。
 			可以直接使用promise在thread创建的子线程之间传递参数，async则可以通过get_future() & get()返回或捕捉线程中的参数
+			std::launch::deferred |std::launch::async 同时用“或”的关系，
+			意味着调用async的行为可能是创建新线程并立即执行async，或者是没有创建新线程而是延迟调用任务入口函数，最终是由系统来决定的。
 	*/
 #endif //ASYNC_FUTURE_LESSEN
 
@@ -207,12 +211,12 @@ void myotherThread(std::future<int>& future)
 
 std::vector<std::packaged_task<int(int)>> mypackagetasks;
 
-int main(int argc, char const *argv[]) 
+int main4(int argc, char const *argv[]) 
 {
 	std::cout << "main Thread id: " << std::this_thread::get_id() << "...run...\n";
 
 	//future<T>T就是将来子线程要返回的值
-	std::future<int> retVal = std::async(myThread,10);//线程开始执行，虽然线程函数会延迟5s,但是不会卡在这儿
+	std::future<int> retVal = std::async(std::launch::async ,myThread,10);//线程开始执行，虽然线程函数会延迟5s,但是不会卡在这儿
 	for (size_t i = 0; i < 10; ++i) 
 		std::cout << "test..." << i << std::endl;
 
