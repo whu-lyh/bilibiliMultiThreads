@@ -24,6 +24,18 @@
     <ClCompile Include="project2.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="project3.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="project4.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="project5.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="project6.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="projectInfo.h">

@@ -6,16 +6,20 @@
 #include <list>
 #include <mutex>
 #include <future>
+#include <atomic>
 
-//#define CONDITION_VARIABLE_LESSEN
-#define ASYNC_FUTURE_LESSEN
+#define CONDITION_VARIABLE_LESSEN
+//#define ASYNC_FUTURE_LESSEN
 
 #ifdef CONDITION_VARIABLE_LESSEN
 /*
-std::condition_variable条件变量，实际是一个类,需要和一个互斥量配对使用
-notify_one不一定能够唤醒wait()因为wait（）所在线程可能正在执行某个很耗时的部分，而不是卡在wait()处
-notify_one一次只会激活一个线程，如果两个线程如下面的outMsgRecvQueue函数（两个线程）中都有wiai()等待唤醒，则需要notify_all()
-notify_all
+	std::condition_variable条件变量，实际是一个类,需要和一个互斥量配对使用
+	notify_one不一定能够唤醒wait()因为wait（）所在线程可能正在执行某个很耗时的部分，而不是卡在wait()处
+	notify_one一次只会激活一个线程，如果两个线程如下面的outMsgRecvQueue函数（两个线程）中都有wiai()等待唤醒，则需要notify_all()
+	notify_all
+
+	wait被虚假唤醒，充分的notify_one激活代码，wait()的第二个参数lambda表达式确定返回值类型
+
 */
 #endif // CONDITION_VARIABLE_LESSEN
 
@@ -81,14 +85,28 @@ notify_all
 			可以直接使用promise在thread创建的子线程之间传递参数，async则可以通过get_future() & get()返回或捕捉线程中的参数
 			std::launch::deferred |std::launch::async 同时用“或”的关系，
 			意味着调用async的行为可能是创建新线程并立即执行async，或者是没有创建新线程而是延迟调用任务入口函数，最终是由系统来决定的。
-	*/
+*/
 #endif //ASYNC_FUTURE_LESSEN
-
 
 #ifdef CONDITION_VARIABLE_LESSEN
 class FF
 {
 public:
+
+	FF ()
+	{
+		//原子变量初始化，不会被系统 context switch的代码部分
+		atomic_int_ = 0;
+		//auto atomic_int2 = atomic_int_; //拷贝构造函数被取消了，因为这种方法无法成为原子操作，因此会报异常“尝试引用已删除的函数”
+		//std::atomic<int> atomic_int3 = atomic_int_;//此行同理
+		//=赋值运算符也不行
+		//load()以原子方式读atomic对象的值
+		auto atomic_int2(atomic_int_.load()); //拷贝构造函数被取消了，因为这种方法无法成为原子操作，因此会报异常“尝试引用已删除的函数”
+		std::atomic<int> atomic_int3 (atomic_int_.load());
+		//store()以原子方式写入内容
+		atomic_int3.store (12);
+		atomic_int3 = 12;
+	}
 	//把收到的消息加入到一个队列的线程
 	void inMsgRecvQueue()
 	{
@@ -120,7 +138,7 @@ public:
 				获取到锁之后重新加锁。
 			*/
 			my_cond.wait(uniquelock, [this] { //一个lambda就是一个可调用对象（函数）
-				if (!m_queue.empty())
+				if (!m_queue.empty()) //处理虚假唤醒
 					return true;
 				return false;
 			});
@@ -138,9 +156,10 @@ private:
 	std::list<int> m_queue; //容器（消息队列），共享数据
 	std::mutex my_mutexA;
 	std::condition_variable my_cond;
+	std::atomic<int> atomic_int_;
 };
 
-int main4()
+int main()
 {
 	FF myBobj;
 	std::thread msgOutobj(&FF::outMsgRecvQueue, &myBobj); //第二个参数是引用，这样才能保证线程里使用的是同意个对象，但是就不能使用detach了

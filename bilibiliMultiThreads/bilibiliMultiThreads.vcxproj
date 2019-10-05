@@ -118,6 +118,10 @@
     <ClCompile Include="project0.cpp" />
     <ClCompile Include="project1.cpp" />
     <ClCompile Include="project2.cpp" />
+    <ClCompile Include="project3.cpp" />
+    <ClCompile Include="project4.cpp" />
+    <ClCompile Include="project5.cpp" />
+    <ClCompile Include="project6.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="projectInfo.h" />

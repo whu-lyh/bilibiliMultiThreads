@@ -49,6 +49,7 @@ void write()
 	for (size_t i = 0; i < 1000000; ++i) {
 		//mtx.lock();
 		commVar++; //原子操作，不会被打断
+		// commVar = commVar + 1; //这种不是原子操作
 		//mtx.unlock();
 	}
 	return;
